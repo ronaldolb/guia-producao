@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guia de Produção & Demanda</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0f1117;
+  --bg2: #161921;
+  --bg3: #1e2230;
+  --border: rgba(255,255,255,0.08);
+  --border2: rgba(255,255,255,0.14);
+  --text: #e8eaf0;
+  --muted: #7a8099;
+  --accent: #4f9eff;
+  --accent2: #7c6fff;
+  --green: #3ecf8e;
+  --amber: #f5a623;
+  --coral: #ff6b6b;
+  --purple: #9b8cff;
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'IBM Plex Sans', sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 15px; line-height: 1.6; min-height: 100vh; }
+
+/* HEADER */
+.header { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 0 20px; display: flex; align-items: center; gap: 16px; height: 56px; position: sticky; top: 0; z-index: 100; }
+.logo { font-family: var(--mono); font-size: 13px; font-weight: 500; color: var(--accent); letter-spacing: .06em; white-space: nowrap; }
+.search-wrap { flex: 1; max-width: 480px; position: relative; }
+.search-wrap input { width: 100%; background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; padding: 8px 14px 8px 36px; color: var(--text); font-family: var(--sans); font-size: 13px; outline: none; transition: border .2s; }
+.search-wrap input:focus { border-color: var(--accent); }
+.search-wrap input::placeholder { color: var(--muted); }
+.search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 14px; pointer-events: none; }
+.badge-count { font-family: var(--mono); font-size: 11px; color: var(--muted); margin-left: auto; white-space: nowrap; }
+
+/* LAYOUT */
+.layout { display: flex; min-height: calc(100vh - 56px); }
+
+/* SIDEBAR */
+.sidebar { width: 220px; flex-shrink: 0; background: var(--bg2); border-right: 1px solid var(--border); padding: 16px 0; position: sticky; top: 56px; height: calc(100vh - 56px); overflow-y: auto; }
+.sidebar-section { padding: 0 12px 16px; }
+.sidebar-label { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: .1em; text-transform: uppercase; padding: 0 8px; margin-bottom: 6px; }
+.nav-btn { display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 10px; border-radius: 7px; border: none; background: transparent; color: var(--muted); font-family: var(--sans); font-size: 13px; cursor: pointer; transition: all .15s; text-align: left; }
+.nav-btn:hover { background: var(--bg3); color: var(--text); }
+.nav-btn.active { background: rgba(79,158,255,0.12); color: var(--accent); }
+.nav-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+/* MAIN */
+.main { flex: 1; padding: 28px 28px 60px; max-width: 860px; }
+
+/* SECTION HEADER */
+.sec-header { margin-bottom: 24px; }
+.sec-tag { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: .08em; text-transform: uppercase; margin-bottom: 6px; }
+.sec-title { font-size: 22px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+.sec-desc { font-size: 14px; color: var(--muted); line-height: 1.7; }
+
+/* CARDS GRID */
+.cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; margin-bottom: 28px; }
+.card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 18px; cursor: pointer; transition: all .2s; }
+.card:hover { border-color: var(--border2); transform: translateY(-1px); }
+.card.expanded { border-color: var(--border2); }
+.card-top { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 10px; }
+.card-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+.card-meta { flex: 1; }
+.card-name { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 2px; }
+.card-sub { font-size: 12px; color: var(--muted); }
+.card-preview { font-size: 13px; color: var(--muted); line-height: 1.6; }
+.card-expand { margin-top: 14px; border-top: 1px solid var(--border); padding-top: 14px; display: none; }
+.card-expand.open { display: block; }
+
+/* DETAIL LIST */
+.detail-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.detail-list li { font-size: 13px; color: var(--muted); display: flex; gap: 8px; line-height: 1.5; }
+.detail-list li::before { content: '›'; color: var(--accent); flex-shrink: 0; font-weight: 600; }
+
+/* FORMULA */
+.formula { background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; font-family: var(--mono); font-size: 12px; color: var(--green); margin: 12px 0; }
+
+/* TAGS */
+.tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.tag { font-size: 11px; font-family: var(--mono); padding: 3px 9px; border-radius: 4px; background: var(--bg3); border: 1px solid var(--border); color: var(--muted); }
+
+/* STEP LIST */
+.step-list { display: flex; flex-direction: column; gap: 0; }
+.step-item { display: flex; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.step-item:last-child { border-bottom: none; }
+.step-num { font-family: var(--mono); font-size: 11px; font-weight: 500; color: var(--accent); min-width: 24px; padding-top: 2px; }
+.step-body .step-name { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 3px; }
+.step-body .step-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+/* COMPARE TABLE */
+.compare-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 16px; }
+.compare-table th, .compare-table td { padding: 9px 12px; border: 1px solid var(--border); text-align: left; }
+.compare-table th { background: var(--bg3); color: var(--muted); font-family: var(--mono); font-weight: 500; font-size: 11px; letter-spacing: .04em; }
+.compare-table td { color: var(--muted); }
+.compare-table tr:hover td { background: var(--bg3); }
+
+/* SEARCH RESULTS */
+.search-results { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 24px; }
+.result-item { padding: 10px 0; border-bottom: 1px solid var(--border); cursor: pointer; }
+.result-item:last-child { border-bottom: none; }
+.result-item:hover .result-name { color: var(--accent); }
+.result-name { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 2px; transition: color .15s; }
+.result-path { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+.result-snippet { font-size: 12px; color: var(--muted); margin-top: 4px; line-height: 1.5; }
+.no-results { color: var(--muted); font-size: 14px; text-align: center; padding: 20px 0; }
+
+/* MOBILE */
+.mob-nav-toggle { display: none; background: none; border: 1px solid var(--border); border-radius: 6px; color: var(--muted); padding: 6px 10px; cursor: pointer; font-size: 18px; }
+.sidebar-overlay { display: none; }
+@media (max-width: 700px) {
+  .mob-nav-toggle { display: flex; }
+  .sidebar { position: fixed; left: -240px; top: 56px; height: calc(100vh - 56px); z-index: 200; transition: left .25s; width: 220px; }
+  .sidebar.open { left: 0; }
+  .sidebar-overlay { display: block; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 199; opacity: 0; pointer-events: none; transition: opacity .25s; }
+  .sidebar-overlay.open { opacity: 1; pointer-events: all; }
+  .main { padding: 20px 16px 60px; }
+  .cards-grid { grid-template-columns: 1fr; }
+  .badge-count { display: none; }
+}
+
+/* HIGHLIGHT */
+mark { background: rgba(79,158,255,0.25); color: var(--accent); border-radius: 2px; padding: 0 2px; }
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<div class="sidebar-overlay" id="overlay" onclick="closeSidebar()"></div>
+
+<header class="header">
+  <button class="mob-nav-toggle" onclick="toggleSidebar()">☰</button>
+  <div class="logo">PROD&gt;GUIDE</div>
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="search-input" placeholder="Buscar: OEE, MAPE, S&OP, PDCA…" oninput="doSearch(this.value)">
+  </div>
+  <div class="badge-count" id="badge-count">6 módulos · 80+ conceitos</div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Módulos</div>
+      <button class="nav-btn active" onclick="showSection('ppcp')" id="nav-ppcp">
+        <span class="nav-dot" style="background:#4f9eff"></span> PPCP
+      </button>
+      <button class="nav-btn" onclick="showSection('pdca')" id="nav-pdca">
+        <span class="nav-dot" style="background:#3ecf8e"></span> PDCA
+      </button>
+      <button class="nav-btn" onclick="showSection('demanda')" id="nav-demanda">
+        <span class="nav-dot" style="background:#f5a623"></span> Previsão de demanda
+      </button>
+      <button class="nav-btn" onclick="showSection('controle')" id="nav-controle">
+        <span class="nav-dot" style="background:#9b8cff"></span> Controle da demanda
+      </button>
+      <button class="nav-btn" onclick="showSection('kpis')" id="nav-kpis">
+        <span class="nav-dot" style="background:#ff6b6b"></span> KPIs
+      </button>
+      <button class="nav-btn" onclick="showSection('ml')" id="nav-ml">
+        <span class="nav-dot" style="background:#7c6fff"></span> Machine Learning
+      </button>
+    </div>
+  </nav>
+
+  <main class="main" id="main-content">
+    <!-- conteúdo dinâmico -->
+  </main>
+</div>
+
+<script>
+// ─── DATA ───────────────────────────────────────────────────────────────────
+
+const sections = {
+
+ppcp: {
+  tag: 'Planejamento · Programação · Controle',
+  title: 'PPCP — Programação e Controle da Produção',
+  desc: 'O PPCP integra as três grandes fases da gestão de produção: planejar o que produzir, acompanhar o andamento e controlar os desvios em relação ao programado.',
+  groups: [
+    {
+      label: 'Programação da produção',
+      color: '#4f9eff',
+      items: [
+        { name: 'Previsão de demanda', sub: 'Ponto de partida', preview: 'Estima o que será consumido para dimensionar produção, materiais e capacidade.', detail: ['Alimenta o MRP, planejamento de capacidade e gestão de estoques', 'Horizonte curto (dias/semanas): reposição de estoque operacional', 'Horizonte médio (meses): programação da produção e compras', 'Horizonte longo (anos): investimentos e capacidade instalada', 'Nunca é exata — o erro deve ser monitorado e reduzido continuamente'], tags: ['MRP', 'Capacidade', 'Estoques'] },
+        { name: 'MRP / Planejamento', sub: 'Materials Requirement Planning', preview: 'Calcula necessidades de materiais, capacidade e prazo com base na demanda prevista.', detail: ['Explode a demanda independente em necessidades dependentes (componentes)', 'Considera lead times, estoques disponíveis e ordens em aberto', 'Gera ordens de produção e ordens de compra planejadas', 'Base para o APS (Advanced Planning & Scheduling) em sistemas modernos'], tags: ['BOM', 'Lead time', 'Ordens planejadas'] },
+        { name: 'Sequenciamento', sub: 'Fila de máquinas e prioridades', preview: 'Define a ordem de execução das ordens nas máquinas para minimizar setup e atrasos.', detail: ['Regras de prioridade: FIFO, EDD (menor prazo), SPT (menor tempo de processo)', 'Minimiza o makespan (tempo total de produção do lote)', 'Considera setups dependentes de sequência — ex.: cor clara antes de escura', 'Ferramentas: gráfico de Gantt, APS, algoritmos heurísticos'], tags: ['FIFO', 'Makespan', 'Setup'] },
+        { name: 'Programação detalhada', sub: 'Gráfico de Gantt / Schedule', preview: 'Aloca cada operação em tempo e máquina, gerando o cronograma detalhado da produção.', detail: ['Gráfico de Gantt: visualização da alocação de tarefas por máquina e tempo', 'Considera capacidade finita de cada recurso', 'Saída: data de início e término de cada operação', 'Alimenta o apontamento e o acompanhamento da produção'], tags: ['Gantt', 'Capacidade finita', 'Cronograma'] },
+      ]
+    },
+    {
+      label: 'Acompanhamento da produção',
+      color: '#f5a623',
+      items: [
+        { name: 'Coleta de dados', sub: 'Apontamento e MES', preview: 'Registra o que realmente aconteceu na linha: quantidade produzida, paradas e refugos.', detail: ['Apontamento manual: operador registra produção, paradas e rejeitos', 'MES (Manufacturing Execution System): coleta automática via sensores e terminais', 'Dados coletados: tempo de ciclo, setup, paradas, quantidade boa/rejeitada', 'Base para cálculo do OEE e análise de desvios'], tags: ['MES', 'OEE', 'Apontamento'] },
+        { name: 'Monitoramento em tempo real', sub: 'Indicadores e dashboards', preview: 'Acompanha o andamento da produção vs. o programado em tempo real.', detail: ['OEE em tempo real: disponibilidade × desempenho × qualidade', 'Andon: sinal visual/sonoro de parada — chama ação imediata', 'Dashboard de produção: produção acumulada vs. meta do turno', 'Integração MES → ERP para atualização automática das ordens'], tags: ['Andon', 'Dashboard', 'Tempo real'] },
+        { name: 'Registro de ocorrências', sub: 'Paradas e desvios', preview: 'Documenta paradas, rejeitos e eventos não planejados para análise de causa raiz.', detail: ['Classificação de paradas: planejada, manutenção, falta de material, setup, falha', 'Registro de rejeitos por tipo de defeito — alimenta SPC e análise de qualidade', 'Relatório de turno: síntese dos eventos para o gestor e turno seguinte', 'Base para o plano de ação corretivo e melhoria contínua'], tags: ['Paradas', 'Rejeitos', 'SPC'] },
+      ]
+    },
+    {
+      label: 'Controle da produção',
+      color: '#ff6b6b',
+      items: [
+        { name: 'Análise de desvios', sub: 'Programado × realizado', preview: 'Compara o que foi planejado com o que foi executado e identifica as causas das diferenças.', detail: ['Desvio de volume: produziu menos que o planejado — causa: parada, setup longo, falta de material', 'Desvio de prazo: ordem entregue fora do tempo — impacta OTIF', 'Desvio de qualidade: rejeição acima do esperado — eleva custo unitário', 'Ferramentas: Ishikawa, 5 Porquês, Pareto de causas de parada'], tags: ['Desvio', 'Ishikawa', 'Pareto'] },
+        { name: 'Ações corretivas', sub: 'Replanejamento e ajustes', preview: 'Corrige o rumo — reprograma ordens, realoca recursos e elimina as causas dos desvios.', detail: ['Replanejamento: ajusta o schedule para recuperar atrasos sem comprometer outros pedidos', 'Hora extra / turno adicional: aumenta capacidade pontualmente', 'Plano de ação 5W2H: o quê, quem, quando, onde, por quê, como, quanto custa', 'Integração com PDCA: desvios recorrentes viram projetos de melhoria'], tags: ['5W2H', 'Replanejamento', 'PDCA'] },
+        { name: 'Relatórios e KPIs', sub: 'Indicadores de desempenho', preview: 'Consolida os resultados em indicadores e relatórios para a gestão tomar decisões.', detail: ['KPIs operacionais: OEE, OTIF, produtividade, índice de rejeição', 'Revisão diária: reunião curta (15 min) com o time para revisar os números do dia anterior', 'Revisão semanal: análise de tendências e ações em andamento', 'Revisão mensal (S&OP): alinhamento entre demanda, produção e finanças'], tags: ['OEE', 'OTIF', 'S&OP'] },
+      ]
+    }
+  ]
+},
+
+pdca: {
+  tag: 'Melhoria contínua',
+  title: 'Ciclo PDCA',
+  desc: 'Criado por Shewhart e popularizado por Deming, o PDCA é o método universal de melhoria contínua. A cada volta do ciclo, o patamar de qualidade sobe.',
+  groups: [
+    {
+      label: 'As quatro fases',
+      color: '#3ecf8e',
+      items: [
+        { name: 'P — Plan (Planejar)', sub: 'Identificar o problema e traçar o plano', preview: 'Define o problema, analisa as causas raiz e estabelece metas e ações.', detail: ['Definir claramente o problema ou oportunidade de melhoria', 'Analisar as causas raiz: diagrama de Ishikawa, 5 Porquês, árvore de causas', 'Estabelecer metas mensuráveis (SMART: específica, mensurável, atingível, relevante, temporal)', 'Planejar ações com 5W2H: o quê, quem, quando, onde, por quê, como, custo', 'Definir indicadores para acompanhar o progresso'], tags: ['5 Porquês', 'Ishikawa', 'SMART', '5W2H'], formula: 'Meta SMART = Específica + Mensurável + Atingível + Relevante + Temporal' },
+        { name: 'D — Do (Executar)', sub: 'Implementar em escala piloto', preview: 'Coloca o plano em prática em pequena escala e coleta dados reais.', detail: ['Treinar a equipe envolvida nas mudanças antes de executar', 'Executar o plano em escala piloto — nunca na operação toda de primeira', 'Coletar dados reais durante a execução: medir tudo que foi definido no Plan', 'Registrar desvios, dificuldades e resultados observados sem alterar o plano', 'Documentar as condições exatas da execução para reproducibilidade'], tags: ['Piloto', 'Coleta de dados', 'Treinamento'] },
+        { name: 'C — Check (Verificar)', sub: 'Comparar resultados com a meta', preview: 'Analisa os dados coletados e verifica se as ações atingiram a meta planejada.', detail: ['Comparar resultados obtidos com as metas estabelecidas no Plan', 'Analisar os dados com gráficos: tendência, histograma, gráfico de controle', 'Identificar o que funcionou e o que não funcionou — sem julgamento', 'Verificar se as causas raiz foram de fato eliminadas ou apenas mascaradas', 'Documentar lições aprendidas independentemente do resultado'], tags: ['Análise', 'Gráficos', 'Lições aprendidas'] },
+        { name: 'A — Act (Agir)', sub: 'Padronizar ou reiniciar o ciclo', preview: 'Padroniza o que funcionou ou corrige o rumo e reinicia o ciclo.', detail: ['Se a meta foi atingida: padronizar o processo (POP, instrução de trabalho, norma)', 'Treinar a equipe ampliada no novo padrão e garantir adesão', 'Definir mecanismos de monitoramento contínuo para manter o ganho', 'Se a meta não foi atingida: identificar a causa do insucesso e reiniciar o PDCA', 'Buscar novo problema ou elevar a meta — o ciclo nunca termina'], tags: ['POP', 'Padronização', 'Melhoria contínua'] },
+      ]
+    },
+    {
+      label: 'Ferramentas do PDCA',
+      color: '#4f9eff',
+      items: [
+        { name: 'Diagrama de Ishikawa', sub: '6M: causa e efeito', preview: 'Estrutura visualmente as causas de um problema em seis categorias.', detail: ['6M: Máquina, Mão de obra, Método, Material, Meio ambiente, Medição', 'Construído em equipe — captura o conhecimento coletivo sobre as causas', 'Cada "espinha" representa uma categoria, as sub-espinhas são causas específicas', 'Não mostra qual causa é mais importante — usar Pareto para priorizar', 'Passo seguinte: validar as causas com dados antes de agir'], tags: ['6M', 'Brainstorming', 'Causa-efeito'] },
+        { name: '5 Porquês', sub: 'Causa raiz por pergunta repetida', preview: 'Pergunta "por quê?" repetidamente até chegar à causa raiz do problema.', detail: ['Perguntar "por quê?" 5 vezes (ou até a causa raiz ser encontrada)', 'Simples e eficaz para problemas com causa única — menos eficaz para problemas complexos', 'A resposta de cada "por quê?" se torna a pergunta do próximo nível', 'Evitar parar cedo demais (sintoma como causa) ou tarde demais (filosofia)', 'Combinar com Ishikawa para problemas multifatoriais'], formula: 'Problema → Por quê? → Causa 1 → Por quê? → ... → Causa Raiz' },
+        { name: 'Gráfico de Pareto', sub: '80/20: priorizar causas', preview: 'Identifica as poucas causas que geram a maioria dos problemas.', detail: ['Princípio de Pareto: ~80% dos efeitos vêm de ~20% das causas', 'Construir com frequência ou custo de cada tipo de defeito/parada', 'Priorizar as barras da esquerda — maior impacto com menor esforço', 'Fazer Pareto antes e depois da ação para provar a melhoria', 'Útil para priorizar qual problema atacar primeiro no PDCA'], formula: '80% dos defeitos ← 20% das causas' },
+        { name: '5W2H', sub: 'Plano de ação estruturado', preview: 'Define quem faz o quê, quando, onde, por que, como e com qual custo.', detail: ['What: O quê será feito?', 'Who: Quem é o responsável?', 'When: Quando será concluído?', 'Where: Onde será implementado?', 'Why: Por que esta ação resolve o problema?', 'How: Como será executado (método, recursos)?', 'How much: Qual o custo estimado?'], tags: ['Plano de ação', 'Responsabilidade', 'Prazo'] },
+      ]
+    }
+  ]
+},
+
+demanda: {
+  tag: 'Previsão · Métodos · Erros',
+  title: 'Previsão de Demanda',
+  desc: 'Base de todo planejamento de produção e estoques. A previsão estima a demanda futura com base em dados históricos, mercado e variáveis externas.',
+  groups: [
+    {
+      label: 'Métodos qualitativos',
+      color: '#f5a623',
+      items: [
+        { name: 'Método Delphi', sub: 'Consenso de especialistas', preview: 'Consulta iterativa a especialistas para obter previsões quando há poucos dados históricos.', detail: ['Usado para novos produtos, mercados emergentes ou cenários de ruptura', 'Rodadas anônimas de questionários evitam viés de grupo e efeito manada', 'Especialistas revisam as respostas dos demais e ajustam suas previsões', 'Convergência após 3–5 rodadas gera o forecast consensual', 'Limitação: caro, lento e dependente da qualidade dos especialistas'], tags: ['Novo produto', 'Qualitativo', 'Consenso'] },
+        { name: 'Pesquisa de mercado', sub: 'Intenção de compra do consumidor', preview: 'Coleta dados diretamente do mercado sobre intenção de compra e preferências.', detail: ['Surveys com amostra representativa do mercado-alvo', 'Útil para lançamentos e para capturar mudanças de comportamento do consumidor', 'Limitação: o que o consumidor diz que vai fazer ≠ o que ele faz', 'Complementa métodos quantitativos — não substitui dados históricos', 'Custo elevado — usar com seletividade'], tags: ['Survey', 'Consumidor', 'Lançamento'] },
+      ]
+    },
+    {
+      label: 'Métodos quantitativos',
+      color: '#3ecf8e',
+      items: [
+        { name: 'Média móvel simples', sub: 'Média dos N períodos anteriores', preview: 'Calcula a média dos últimos N períodos como previsão do próximo.', detail: ['Simples de calcular e entender — boa para demanda estável sem tendência', 'N pequeno: reage rápido a mudanças mas é mais sensível a ruído', 'N grande: suaviza ruído mas reage lento a mudanças reais de nível', 'Não captura tendência nem sazonalidade', 'Ponto de partida antes de métodos mais sofisticados'], formula: 'F(t+1) = [D(t) + D(t-1) + ... + D(t-N+1)] / N', tags: ['Demanda estável', 'Simples', 'Baseline'] },
+        { name: 'Suavização exponencial', sub: 'Holt-Winters com sazonalidade', preview: 'Pesa mais os dados recentes — captura nível, tendência e sazonalidade.', detail: ['Simples (SES): só nível — parâmetro α (0 a 1) controla a reatividade', 'Holt (Double): nível + tendência — dois parâmetros α e β', 'Holt-Winters (Triple): nível + tendência + sazonalidade — três parâmetros α, β, γ', 'α alto → reage rápido a mudanças; α baixo → mais suave e estável', 'Estado da arte para séries com sazonalidade clara sem usar ML'], formula: 'F(t+1) = α × D(t) + (1-α) × F(t)', tags: ['Sazonalidade', 'Tendência', 'α β γ'] },
+        { name: 'Regressão linear', sub: 'Demanda como função de variáveis', preview: 'Relaciona a demanda a variáveis causais como preço, temperatura ou PIB.', detail: ['Identifica quanto cada variável explica a variação da demanda', 'Variáveis comuns: preço próprio, preço do concorrente, temperatura, renda, publicidade', 'R² mede o quanto o modelo explica a variação da demanda (0 a 1)', 'Pressupõe relação linear — usar regressão múltipla para vários fatores', 'Cuidado com multicolinearidade entre variáveis independentes'], formula: 'Demanda = a + b₁×Preço + b₂×Temp + ... + ε', tags: ['Causal', 'R²', 'Variáveis externas'] },
+        { name: 'SARIMA / SARIMAX', sub: 'Séries temporais com sazonalidade', preview: 'Modelo clássico que captura autocorrelação, tendência e sazonalidade.', detail: ['ARIMA: AutoRegressive Integrated Moving Average — para séries estacionárias', 'SARIMA: adiciona componente sazonal (p,d,q)(P,D,Q)s', 'SARIMAX: inclui variáveis exógenas (preço, promoção)', 'Interpretável e auditável — importante em contextos regulados', 'auto_arima (biblioteca pmdarima) automatiza a seleção de parâmetros'], formula: 'SARIMA(p,d,q)(P,D,Q)s', tags: ['Estacionariedade', 'ACF', 'PACF'] },
+      ]
+    },
+    {
+      label: 'Métricas de erro',
+      color: '#ff6b6b',
+      items: [
+        { name: 'MAPE', sub: 'Mean Absolute Percentage Error', preview: 'Erro percentual médio — permite comparar produtos de volumes diferentes.', detail: ['< 10%: excelente · 10–20%: aceitável · > 20%: crítico — necessita revisão', 'Vantagem: interpretável em % — fácil de comunicar à gestão', 'Limitação: explode quando o real é próximo de zero (divisão por zero)', 'sMAPE (simétrico) resolve o problema de assimetria do MAPE clássico'], formula: 'MAPE = (1/n) × Σ |Real − Prev| / Real × 100%', tags: ['% erro', 'Comparável', 'KPI forecast'] },
+        { name: 'Bias (viés)', sub: 'Superestimação ou subestimação sistemática', preview: 'Detecta se o modelo erra consistentemente para cima ou para baixo.', detail: ['Bias positivo (+): modelo superestima → causa excesso de estoque', 'Bias negativo (−): modelo subestima → causa rupturas e perda de venda', 'Um modelo pode ter MAPE aceitável mas bias alto — os dois precisam ser monitorados', 'Tracking signal = Σ erro / MAD — detecta quando o bias é estatisticamente significativo', 'Causas comuns: sazonalidade não capturada, mudança de tendência, promoção não modelada'], formula: 'Bias = Σ (Previsto − Real) / Σ Real × 100%', tags: ['Overforecast', 'Underforecast', 'Tracking signal'] },
+        { name: 'MAD', sub: 'Mean Absolute Deviation', preview: 'Média dos erros absolutos — base para calcular o estoque de segurança.', detail: ['Mede o erro médio em unidades absolutas — fácil de entender operacionalmente', 'Usado para dimensionar estoque de segurança: SS = z × MAD × √LT', 'Não é afetado por erros positivos e negativos que se cancelam (ao contrário do bias)', 'MAD ≈ 0,8 × RMSE para distribuições normais'], formula: 'MAD = (1/n) × Σ |Real − Previsto|', tags: ['Estoque segurança', 'Unidades', 'Operacional'] },
+      ]
+    }
+  ]
+},
+
+controle: {
+  tag: 'S&OP · CPFR · Demand Sensing',
+  title: 'Controle da Demanda',
+  desc: 'Monitorar o realizado, comparar com o previsto e realimentar continuamente o plano. Três processos complementares operam em horizontes diferentes.',
+  groups: [
+    {
+      label: 'S&OP — Sales & Operations Planning',
+      color: '#9b8cff',
+      items: [
+        { name: 'O que é o S&OP', sub: 'Um único número para toda a empresa', preview: 'Processo mensal que alinha vendas, produção, logística e finanças em torno de um único plano.', detail: ['Elimina o conflito clássico entre "vendas quer estocar tudo" e "operações quer produzir o mínimo"', 'Horizonte típico: 3 a 18 meses à frente — visão tática e estratégica', 'Saída: um único forecast consensual que guia produção, compras e finanças', 'KPI do processo: acurácia do forecast e aderência ao plano aprovado', 'Maturidade S&OP: vai de reativo (apagar incêndio) a proativo (cenários e simulações)'], tags: ['Mensal', 'Cross-funcional', 'Consenso'] },
+        { name: 'Etapas do ciclo S&OP', sub: '5 passos mensais', preview: 'Da coleta de dados à decisão executiva — cinco etapas em sequência.', detail: ['1. Revisão de dados: coleta de vendas, produção e estoques do mês anterior', '2. Revisão da demanda: time comercial atualiza o forecast com pedidos, pipeline e promoções', '3. Revisão da oferta: operações verifica capacidade, materiais e restrições de fornecedores', '4. Pre-S&OP: áreas identificam lacunas e propõem cenários de resolução', '5. Reunião executiva: diretores decidem o plano único e alocam recursos'], tags: ['5 etapas', 'Executivo', 'Mensal'] },
+      ]
+    },
+    {
+      label: 'CPFR — Planejamento colaborativo',
+      color: '#3ecf8e',
+      items: [
+        { name: 'O que é o CPFR', sub: 'Forecast construído junto com cliente e fornecedor', preview: 'Fornecedor e cliente compartilham dados e constroem o forecast juntos, reduzindo rupturas.', detail: ['Collaborative Planning, Forecasting and Replenishment', 'Elimina o efeito chicote: cada elo da cadeia amplifica a variabilidade sem dados compartilhados', 'Resultado: menos ruptura de gôndola, menos estoque parado, lead time menor', 'Exige maturidade digital dos dois lados: EDI, portal web ou API de integração', 'Muito usado no varejo de grande porte com fornecedores estratégicos'], tags: ['Colaborativo', 'Cadeia de suprimentos', 'EDI'] },
+        { name: 'Etapas do CPFR', sub: '5 passos do processo colaborativo', preview: 'Do acordo inicial à geração automática de pedidos — em cinco etapas estruturadas.', detail: ['1. Acordo de colaboração: escopo, KPIs compartilhados e responsabilidades', '2. Planejamento conjunto: alinhar promoções, sazonalidades e metas de vendas', '3. Forecast colaborativo: cada parte gera sua previsão; sistema identifica exceções', '4. Previsão de pedidos: com forecast alinhado, calcula necessidade de reposição', '5. Geração e monitoramento: pedidos automáticos com acompanhamento em tempo real'], tags: ['5 etapas', 'Exceções', 'Automático'] },
+      ]
+    },
+    {
+      label: 'Demand Sensing',
+      color: '#f5a623',
+      items: [
+        { name: 'O que é demand sensing', sub: 'Dados frescos para forecast de curtíssimo prazo', preview: 'Usa dados de PDV, IoT e clima em tempo real para refinar o forecast dos próximos 1–14 dias.', detail: ['Complementa o S&OP (mensal) com ajustes diários automáticos', 'Fontes de dados: sell-out (PDV), movimentação de CD, clima, buscas web, IoT', 'Modelos de ML (regressão, gradient boosting, LSTM) detectam padrões e ajustam o forecast', 'Atualiza automaticamente o planejamento de produção e o MRP sem intervenção manual', 'Alertas de exceção quando o desvio supera o limiar definido'], tags: ['Tempo real', 'IoT', 'ML', '1–14 dias'] },
+        { name: 'Diferença vs. forecast tradicional', sub: 'Por que o demand sensing é mais rápido', preview: 'O forecast tradicional usa dados históricos; o sensing usa sinais do mercado agora.', detail: ['Forecast tradicional: usa vendas históricas com ciclo de atualização semanal ou mensal', 'Demand sensing: usa dados de ontem (ou de hoje) com atualização diária ou contínua', 'Redução típica de erro de curto prazo: 30–50% vs. forecast convencional', 'Não substitui o S&OP — opera em paralelo no horizonte de 1–14 dias', 'Requer infraestrutura de dados em tempo real e integração com o sistema de produção'], tags: ['Velocidade', 'Precisão', 'Complementar'] },
+      ]
+    },
+    {
+      label: 'Comparativo dos três processos',
+      color: '#4f9eff',
+      items: [
+        { name: 'S&OP vs. CPFR vs. Demand Sensing', sub: 'Horizonte, frequência e foco', preview: 'Cada processo opera em horizonte e frequência diferentes — são complementares.', detail: ['S&OP: foco interno, 3–18 meses, mensal — decisões estratégicas e táticas', 'CPFR: foco externo (cadeia), semanas a meses, semanal/quinzenal — colaboração com parceiros', 'Demand sensing: foco operacional, 1–14 dias, diário/contínuo — ajustes finos em tempo real', 'Implementação sequencial recomendada: S&OP → CPFR → Demand sensing', 'Maturidade digital crescente: S&OP exige menos tecnologia; sensing exige IoT e ML'], tags: ['Complementares', 'Maturidade digital', 'Integração'] },
+      ]
+    }
+  ]
+},
+
+kpis: {
+  tag: 'Demanda · Produção · Estoque · Qualidade · Financeiro',
+  title: 'KPIs — Indicadores de Desempenho',
+  desc: 'Os principais indicadores para medir e gerenciar a performance da produção e da cadeia de demanda. Use de 5 a 8 KPIs por área — monitorar tudo é não monitorar nada.',
+  groups: [
+    {
+      label: 'KPIs de demanda',
+      color: '#9b8cff',
+      items: [
+        { name: 'Acurácia de forecast (FA)', sub: 'Forecast Accuracy', preview: 'Mede o quanto a previsão chegou perto da demanda real. Meta: > 85%.', detail: ['FA 90% significa que o erro absoluto médio foi de 10%', 'Calculado por SKU, família ou canal — acompanhar nos três níveis', 'Queda de FA → revisão do modelo de previsão ou das premissas de entrada', 'Relatório mensal de acurácia por família é input essencial do S&OP'], formula: 'FA = (1 − |Real − Previsto| / Real) × 100%', tags: ['Meta > 85%', 'S&OP', 'Mensal'] },
+        { name: 'MAPE', sub: 'Mean Absolute Percentage Error', preview: 'Erro percentual médio absoluto. Meta: < 15%.', detail: ['< 10%: excelente · 10–20%: aceitável · > 20%: crítico', 'Permite comparar forecast de produtos com volumes muito diferentes', 'Monitorar por categoria de produto: itens A têm meta mais rígida que itens C', 'Decompor por causa: erro de nível, tendência ou sazonalidade'], formula: 'MAPE = (1/n) × Σ |Real − Prev| / Real × 100%', tags: ['Meta < 15%', '% erro', 'Comparável'] },
+        { name: 'Fill rate', sub: 'Taxa de atendimento de pedidos', preview: 'Percentual de pedidos entregues completos e no prazo. Meta: > 95%.', detail: ['Fill rate por linha: % de linhas de pedido atendidas completamente', 'Fill rate por volume: % do volume total solicitado que foi entregue', 'Queda de fill rate: investigar causa — estoque, produção ou logística', 'Varejo: meta > 98% · Indústria B2B: 95–98%'], formula: 'Fill Rate = Pedidos atendidos / Pedidos solicitados × 100%', tags: ['Meta > 95%', 'Nível de serviço', 'Ruptura'] },
+        { name: 'Bias de forecast', sub: 'Viés de superestimação ou subestimação', preview: 'Indica se o modelo erra sistematicamente para cima ou para baixo. Meta: próximo de 0.', detail: ['Bias positivo (+): superestima → excesso de estoque e capital imobilizado', 'Bias negativo (−): subestima → rupturas e perda de venda', 'Monitorar junto com MAPE — MAPE bom com bias alto é sinal de alerta', 'Tracking signal detecta quando o bias é estatisticamente significativo'], formula: 'Bias = Σ (Previsto − Real) / Σ Real × 100%', tags: ['Meta ≈ 0', 'Viés', 'Tracking signal'] },
+      ]
+    },
+    {
+      label: 'KPIs de produção',
+      color: '#4f9eff',
+      items: [
+        { name: 'OEE', sub: 'Overall Equipment Effectiveness', preview: 'O principal KPI de eficiência de equipamentos. Meta classe mundial: > 85%.', detail: ['Disponibilidade: % do tempo programado em que o equipamento operou (desconta paradas)', 'Desempenho: velocidade real vs. velocidade nominal (desconta perdas de velocidade)', 'Qualidade: peças boas vs. total produzido (desconta rejeitos e retrabalho)', 'OEE 85% = referência classe mundial · 65–85% = médio · < 65% = crítico', 'Decompor para identificar onde está a maior perda: disponibilidade, desempenho ou qualidade'], formula: 'OEE = Disponibilidade × Desempenho × Qualidade', tags: ['Meta > 85%', 'Classe mundial', 'Lean'] },
+        { name: 'OTIF', sub: 'On Time In Full', preview: 'Entregas no prazo certo e na quantidade certa. Meta: > 95%.', detail: ['On Time: entrega no prazo acordado com o cliente', 'In Full: entrega na quantidade total solicitada', 'OTIF = OT% × IF% — basta um falhar para o indicador cair', 'Combina performance de produção, estoque e logística em um único número', 'OTIF < 90% sinaliza problema sério de planejamento ou execução'], formula: 'OTIF = Entregas on time e in full / Total de entregas × 100%', tags: ['Meta > 95%', 'Nível de serviço', 'Cliente'] },
+        { name: 'Produtividade (H-H)', sub: 'Produção por hora-homem', preview: 'Relaciona o volume produzido com as horas trabalhadas.', detail: ['Permite comparar turnos, células e plantas com volumes diferentes', 'Alta produtividade com alta rejeição é falsa eficiência — monitorar junto com qualidade', 'Comparar sempre no mesmo mix de produtos e período', 'Benchmarking interno: usar o melhor turno como referência para os demais'], formula: 'Produtividade = Produção total / Horas trabalhadas', tags: ['H-H', 'Benchmark', 'Eficiência'] },
+        { name: 'Lead time de produção', sub: 'Manufacturing Lead Time', preview: 'Tempo total da liberação da ordem até o produto ficar disponível. Meta: mínimo.', detail: ['Composto de: tempo de fila + tempo de processo + tempo de espera e inspeção', 'Reduzir lead time aumenta flexibilidade e reduz necessidade de estoques', 'Lean: identificar e eliminar tempos de fila e espera (non-value-added)', 'Lead time curto → resposta mais rápida a mudanças de demanda'], formula: 'LT = Tempo fila + Tempo processo + Tempo espera', tags: ['Lean', 'Flexibilidade', 'Mínimo'] },
+      ]
+    },
+    {
+      label: 'KPIs de estoque',
+      color: '#f5a623',
+      items: [
+        { name: 'Giro de estoque', sub: 'Inventory Turnover', preview: 'Quantas vezes o estoque é renovado no período. Meta: alto (varia por setor).', detail: ['Giro 12 = estoque se renova 12x/ano = cobertura média de 30 dias', 'Giro alto: capital eficiente, menor risco de obsolescência', 'Giro baixo: capital imobilizado, maior custo financeiro', 'Varejo alimentar > 20 · Indústria: 6–12 · Projetos/MTO: < 4'], formula: 'Giro = CMV (ou Consumo anual) / Estoque médio', tags: ['Capital', 'Obsolescência', 'Eficiência'] },
+        { name: 'Cobertura de estoque (DOS)', sub: 'Days of Supply', preview: 'Quantos dias o estoque atual abastece sem nova reposição. Meta: mínimo sem ruptura.', detail: ['Cobertura alta: capital parado e risco de obsolescência', 'Cobertura baixa: risco de ruptura se o fornecedor atrasar', 'Ponto ótimo: cobertura = lead time do fornecedor + estoque de segurança', 'Monitorar por SKU — itens A exigem política mais conservadora'], formula: 'DOS = Estoque atual / Consumo médio diário', tags: ['Lead time', 'Estoque segurança', 'Ruptura'] },
+        { name: 'Acurácia do inventário', sub: 'Inventory Accuracy', preview: 'Percentual de itens em que o sistema bate com o físico. Meta: > 98%.', detail: ['Inventário impreciso → ordens erradas, rupturas falsas, excesso não detectado', 'Inventário cíclico (contagem rotativa) é mais eficaz que inventário geral anual', 'WMS e RFID aumentam significativamente a acurácia', 'Investigar divergências acima de ±2% imediatamente'], formula: 'Acurácia = Itens contados corretos / Total contado × 100%', tags: ['Meta > 98%', 'Cíclico', 'WMS / RFID'] },
+      ]
+    },
+    {
+      label: 'KPIs de qualidade',
+      color: '#ff6b6b',
+      items: [
+        { name: 'Índice de rejeição (Scrap Rate)', sub: 'Defeitos na produção', preview: 'Percentual de peças descartadas por não conformidade. Meta: < 1%.', detail: ['Alto scrap eleva custo unitário e reduz o componente Qualidade do OEE', 'Pode gerar ruptura se a produção efetiva ficar abaixo do planejado', 'Acompanhar por tipo de defeito e por etapa do processo', 'Seis Sigma: meta de 3,4 DPMO (defeitos por milhão de oportunidades)'], formula: 'Rejeição = Peças rejeitadas / Total produzido × 100%', tags: ['Meta < 1%', 'OEE', 'Seis Sigma'] },
+        { name: 'FTY — First Time Yield', sub: 'Rendimento na primeira passagem', preview: 'Percentual que passa pelo processo sem retrabalho nem rejeição.', detail: ['Diferente do scrap rate: FTY penaliza o retrabalho mesmo que a peça seja aprovada depois', 'RTY (Rolled Throughput Yield): FTY multiplicado ao longo de todas as etapas do processo', 'Processo com 3 etapas de FTY 95%: RTY = 0,95³ = 85,7%', 'FTY baixo indica etapas que precisam de melhoria de capabilidade (Cp, Cpk)'], formula: 'FTY = Aprovados na 1ª passagem / Total produzido × 100%', tags: ['Retrabalho', 'RTY', 'Capabilidade'] },
+      ]
+    },
+    {
+      label: 'KPIs financeiros',
+      color: '#3ecf8e',
+      items: [
+        { name: 'Custo por unidade', sub: 'Unit Cost', preview: 'Custo médio para produzir uma unidade — soma de MP, MOD e CIF.', detail: ['MP (Matéria-prima): custo dos materiais consumidos por unidade', 'MOD (Mão de obra direta): custo da mão de obra produtiva alocada à unidade', 'CIF (Custos indiretos de fabricação): rateio de energia, depreciação, manutenção', 'Monitorar evolução mensal: aumentos indicam inflação de insumos ou queda de eficiência', 'Comparar com o custo-padrão (standard cost) para identificar desvios'], formula: 'Custo unitário = (MP + MOD + CIF) / Unidades produzidas', tags: ['MP', 'MOD', 'CIF'] },
+        { name: 'Margem de contribuição', sub: 'Contribution Margin', preview: 'Quanto cada unidade contribui para cobrir custos fixos e gerar lucro.', detail: ['MC/unidade × volume = cobertura total dos custos fixos', 'Usado para decisões de mix de produção: priorizar produtos com maior MC/hora-máquina', 'MC negativa: cada unidade vendida piora o resultado — revisar preço ou custo', 'Ponto de equilíbrio (break-even): Custos Fixos / MC unitária'], formula: 'MC = Receita − Custos variáveis', tags: ['Mix de produção', 'Break-even', 'Decisão'] },
+      ]
+    }
+  ]
+},
+
+ml: {
+  tag: 'Algoritmos · Aplicações · Pipeline',
+  title: 'Machine Learning na Produção',
+  desc: 'ML não substitui o planejador — libera-o das tarefas mecânicas para focar em exceções e decisões estratégicas. O maior determinante do sucesso é a qualidade dos dados.',
+  groups: [
+    {
+      label: 'Tipos de aprendizado',
+      color: '#7c6fff',
+      items: [
+        { name: 'Supervisionado', sub: 'Dados rotulados → previsão', preview: 'Treina com exemplos passados que têm resposta conhecida. O mais usado em produção.', detail: ['Regressão: prevê valor numérico — demanda futura, custo, lead time', 'Classificação: prevê categoria — peça boa/ruim, pedido vai atrasar ou não', 'Requer dados históricos rotulados em quantidade suficiente', 'Aplicações: forecast de demanda, manutenção preditiva, controle de qualidade'], tags: ['Regressão', 'Classificação', 'Forecast'] },
+        { name: 'Não supervisionado', sub: 'Padrões sem rótulo', preview: 'Descobre padrões nos dados sem resposta pré-definida.', detail: ['Clustering (k-means, DBSCAN): agrupa SKUs por perfil de demanda para políticas de estoque diferenciadas', 'Detecção de anomalias: identifica comportamentos fora do padrão em linhas de produção', 'PCA: reduz muitas variáveis em poucas dimensões — facilita visualização', 'Útil quando não há rótulos ou quando se quer explorar dados sem hipótese prévia'], tags: ['Clustering', 'Anomalia', 'PCA'] },
+        { name: 'Aprendizado por reforço', sub: 'Agente aprende por tentativa e erro', preview: 'Aprende políticas ótimas de decisão — sequenciamento, reposição de estoque.', detail: ['Agente toma ações e recebe recompensas ou penalidades', 'Sequenciamento de produção: aprende a priorizar ordens para minimizar setup e atraso', 'Política de ressuprimento: aprende quando e quanto pedir minimizando custo total', 'Requer ambiente de simulação antes de ir para produção real', 'Mais complexo de implementar — resultados impressionantes em otimização'], tags: ['Sequenciamento', 'Ressuprimento', 'Otimização'] },
+        { name: 'Deep learning', sub: 'Redes neurais profundas', preview: 'Aprende representações complexas automaticamente — estado da arte em séries temporais.', detail: ['LSTM / GRU: redes recorrentes para séries temporais — capturam dependências longas', 'Temporal Fusion Transformer (TFT): estado da arte em forecast multivariado com interpretabilidade', 'CNN: visão computacional para inspeção de qualidade — detecta defeitos em imagens', 'Requer grandes volumes de dados e poder computacional maior', 'Nem sempre supera XGBoost em séries temporais curtas — testar os dois'], tags: ['LSTM', 'TFT', 'CNN', 'Séries temporais'] },
+      ]
+    },
+    {
+      label: 'Algoritmos principais',
+      color: '#3ecf8e',
+      items: [
+        { name: 'XGBoost / LightGBM', sub: 'Gradient boosting — referência tabular', preview: 'Ensemble de árvores em sequência. Vencedor histórico de competições de forecast.', detail: ['Combina centenas de árvores de decisão fracas, cada uma corrigindo o erro da anterior', 'Vencedor da M5 Competition (maior competição mundial de forecast)', 'Aceita facilmente lags, sazonalidade codificada, variáveis categóricas e dados externos', 'Rápido de treinar, robusto a outliers e fornece importância de variáveis nativamente', 'É o algoritmo de referência para demand forecasting tabular antes de recorrer a deep learning'], tags: ['Ensemble', 'M5 Competition', 'Feature importance'] },
+        { name: 'Prophet / NeuralProphet', sub: 'Meta — séries com sazonalidade', preview: 'Decompõe a série em tendência, sazonalidade e feriados. Fácil de usar.', detail: ['Desenvolvido pelo Meta — decompõe em tendência + sazonalidade (diária, semanal, anual) + feriados', 'Aceita regressores externos: temperatura, campanhas, preço', 'Robusto a dados faltantes e mudanças abruptas de nível (changepoints automáticos)', 'NeuralProphet: adiciona componentes neurais mantendo interpretabilidade', 'Boa escolha para analistas sem profundo conhecimento de ML'], tags: ['Facebook', 'Sazonalidade', 'Feriados', 'Interpretável'] },
+        { name: 'Random Forest', sub: 'Ensemble de árvores independentes', preview: 'Menos preciso que gradient boosting mas muito robusto e interpretável.', detail: ['Treina muitas árvores independentes em amostras aleatórias e faz a média', 'Menos sensível a hiperparâmetros que XGBoost — boa escolha para início', 'Feature importance: identifica quais variáveis mais influenciam a demanda', 'Muito usado para classificação de qualidade e detecção de causa de falha', 'Boa escolha quando os dados são ruidosos e overfitting precisa ser controlado'], tags: ['Robusto', 'Interpretável', 'Qualidade'] },
+        { name: 'LSTM / Transformer (TFT)', sub: 'Deep learning para séries temporais', preview: 'Redes neurais especializadas em sequências temporais longas e multivariadas.', detail: ['LSTM: captura dependências de longo prazo em séries temporais — útil com > 2 anos de histórico', 'TFT (Temporal Fusion Transformer): attention mechanism + interpretabilidade — estado da arte', 'Requer mais dados e tempo de treinamento que métodos clássicos', 'Vantagem: aprende automaticamente features temporais sem engenharia manual', 'Biblioteca recomendada: PyTorch Forecasting, Darts, NeuralForecast'], tags: ['PyTorch', 'Attention', 'Multivariate'] },
+      ]
+    },
+    {
+      label: 'Aplicações industriais',
+      color: '#f5a623',
+      items: [
+        { name: 'Demand forecasting com ML', sub: 'Core do supply chain inteligente', preview: 'Substitui médias móveis por modelos que aprendem padrões complexos automaticamente.', detail: ['Incorpora variáveis externas: clima, feriados, preço, promoções, Google Trends', 'Forecast hierárquico: prevê em múltiplos níveis (empresa → canal → SKU) de forma consistente', 'Quantifica incerteza: intervalos de confiança permitem dimensionar estoque de segurança com precisão', 'Redução típica de MAPE: 20–40% vs. métodos clássicos em séries com alta variabilidade', 'Integração: modelo → API → ERP/APS → programação da produção'], tags: ['20–40% MAPE', 'Hierárquico', 'API → ERP'] },
+        { name: 'Manutenção preditiva', sub: 'Prever falha antes de ocorrer', preview: 'Sensores IoT + ML detectam padrões de falha iminente antes que a máquina pare.', detail: ['Dados de sensores: vibração, temperatura, corrente, pressão, ruído acústico', 'Classificação: o equipamento vai falhar nas próximas X horas? Sim/Não', 'RUL (Remaining Useful Life): regressão que estima horas de vida útil restantes', 'Reduz paradas não planejadas — principal vilão do OEE', 'Evita manutenção preventiva excessiva — fazer apenas quando necessário'], tags: ['IoT', 'OEE', 'RUL', 'CMMS'] },
+        { name: 'Inspeção por visão computacional', sub: 'CNN para detecção de defeitos', preview: 'Câmeras na linha + CNN inspecionam 100% das peças em milissegundos.', detail: ['CNN classifica peças como boa/defeituosa com acurácia superior à inspeção humana', 'Detecta: riscos, bolhas, dimensões fora de tolerância, contaminantes', 'YOLO / Faster R-CNN: localiza e categoriza múltiplos defeitos por imagem', 'Gera dados de qualidade com localização do defeito — alimenta SPC automaticamente', 'Elimina variabilidade da inspeção humana e permite 100% de cobertura'], tags: ['CNN', 'YOLO', '100% inspeção', 'SPC'] },
+        { name: 'Otimização de estoque com ML', sub: 'Ponto de pedido e lote ótimo aprendidos', preview: 'ML aprende políticas de ressuprimento que minimizam custo total de estoque.', detail: ['Estoque de segurança dinâmico: ajusta com base na variabilidade real da demanda e do lead time', 'ABC-XYZ automático: segmenta SKUs por valor e previsibilidade para políticas diferenciadas', 'Otimização multi-echelon: distribui estoques ao longo de toda a cadeia para minimizar custo total', 'Aprendizado por reforço: agente aprende quando e quanto pedir em cenários de demanda incerta', 'Comparação: ML supera EOQ clássico em cenários de demanda variável e lead time estocástico'], tags: ['Dinâmico', 'Multi-echelon', 'EOQ → ML'] },
+      ]
+    },
+    {
+      label: 'Pipeline de ML em produção',
+      color: '#ff6b6b',
+      items: [
+        { name: '1. Coleta e integração', sub: 'ERP, IoT, PDV, fontes externas', preview: 'Qualidade dos dados é o maior determinante do sucesso do modelo.', detail: ['Fontes internas: ERP (vendas, produção, estoque), MES, WMS, CMMS', 'Fontes externas: mercado, clima, preço de commodities, Google Trends', 'Pipeline: ingestão (Kafka, Airflow) → armazenamento (data lake) → qualidade e governança', 'Séries temporais: tratar fusos, datas faltantes, granularidade e alinhamento de períodos', '"Garbage in, garbage out" — 70% do esforço de ML está nos dados'], tags: ['ETL', 'Data lake', 'Qualidade de dados'] },
+        { name: '2. Feature engineering', sub: 'Criar variáveis que o modelo aprende', preview: 'Lags, rolling stats, calendário e variáveis externas — o diferencial dos modelos.', detail: ['Lags: demanda de 1, 2, 4, 12 semanas atrás — mais importante para forecast', 'Rolling statistics: média, desvio padrão, máximo dos últimos N períodos', 'Variáveis calendário: dia da semana, mês, feriado, semana do ano', 'Codificação categórica: one-hot, target encoding ou embeddings para SKU/canal/região', 'Variáveis externas: temperatura, promoção, elasticidade de preço'], tags: ['Lags', 'Rolling', 'Calendário'] },
+        { name: '3. Validação temporal', sub: 'Walk-forward cross-validation', preview: 'Nunca usar dados futuros no treino — divisão aleatória é erro grave em séries.', detail: ['Walk-forward: janelas de treino que avançam no tempo, nunca usando o futuro', 'Separar treino, validação e teste em ordem cronológica — jamais aleatoriamente', 'Métricas: MAPE, RMSE, SMAPE, bias — escolher a que reflete o custo do erro de negócio', 'Baseline obrigatório: comparar ML com média móvel para justificar complexidade', 'Tuning: Optuna ou Hyperopt para seleção de hiperparâmetros'], formula: 'Walk-forward: [Treino₁|Val₁] → [Treino₂|Val₂] → ... → Teste', tags: ['Walk-forward', 'Sem data leakage', 'Baseline'] },
+        { name: '4. Deploy e MLOps', sub: 'Modelo em produção e monitoramento contínuo', preview: 'Modelo via API integrada ao ERP, com retraining automático e alertas de drift.', detail: ['Servir via API REST integrada ao ERP/APS para geração automática do forecast', 'Model drift: monitorar se a acurácia cai — dados mudam, modelo precisa ser retreinado', 'Retraining: semanal ou mensal com os dados mais recentes', 'Alertas: quando o forecast diverge muito do baseline, alertar o planejador', 'Ferramentas MLOps: MLflow (experimentos), Vertex AI / SageMaker (produção)'], tags: ['API REST', 'MLOps', 'MLflow', 'Drift'] },
+      ]
+    }
+  ]
+}
+
+};
+
+// ─── INDEX PARA BUSCA ────────────────────────────────────────────────────────
+const searchIndex = [];
+Object.entries(sections).forEach(([secId, sec]) => {
+  sec.groups.forEach(group => {
+    group.items.forEach(item => {
+      searchIndex.push({
+        secId, secTitle: sec.title, groupLabel: group.label,
+        name: item.name, sub: item.sub, preview: item.preview,
+        detail: (item.detail || []).join(' '),
+        tags: (item.tags || []).join(' '),
+        formula: item.formula || ''
+      });
+    });
+  });
+});
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let currentSection = 'ppcp';
+let expandedCards = new Set();
+let searchQuery = '';
+
+// ─── RENDER ──────────────────────────────────────────────────────────────────
+function render() {
+  const main = document.getElementById('main-content');
+  if (searchQuery.length > 1) {
+    renderSearch(main);
+  } else {
+    renderSection(main, currentSection);
+  }
+}
+
+function renderSection(main, secId) {
+  const sec = sections[secId];
+  let html = `
+    <div class="sec-header">
+      <div class="sec-tag">${sec.tag}</div>
+      <div class="sec-title">${sec.title}</div>
+      <div class="sec-desc">${sec.desc}</div>
+    </div>
+  `;
+  sec.groups.forEach((group, gi) => {
+    html += `<div style="margin-bottom:28px">
+      <div style="font-size:11px;font-family:var(--mono);color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px;">
+        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${group.color};flex-shrink:0"></span>
+        ${group.label}
+      </div>
+      <div class="cards-grid">`;
+    group.items.forEach((item, ii) => {
+      const cardId = `${secId}-${gi}-${ii}`;
+      const isOpen = expandedCards.has(cardId);
+      const tagsHtml = item.tags ? `<div class="tags">${item.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>` : '';
+      const formulaHtml = item.formula ? `<div class="formula">${item.formula}</div>` : '';
+      const detailHtml = item.detail ? `<ul class="detail-list">${item.detail.map(d=>`<li>${d}</li>`).join('')}</ul>` : '';
+      html += `
+        <div class="card ${isOpen?'expanded':''}" id="card-${cardId}" onclick="toggleCard('${cardId}')">
+          <div class="card-top">
+            <div class="card-icon" style="background:${group.color}18;color:${group.color}">
+              ${getIcon(item.name)}
+            </div>
+            <div class="card-meta">
+              <div class="card-name">${item.name}</div>
+              <div class="card-sub">${item.sub}</div>
+            </div>
+          </div>
+          <div class="card-preview">${item.preview}</div>
+          <div class="card-expand ${isOpen?'open':''}">
+            ${detailHtml}
+            ${formulaHtml}
+            ${tagsHtml}
+          </div>
+        </div>`;
+    });
+    html += `</div></div>`;
+  });
+  main.innerHTML = html;
+}
+
+function renderSearch(main) {
+  const q = searchQuery.toLowerCase();
+  const results = searchIndex.filter(item =>
+    item.name.toLowerCase().includes(q) ||
+    item.sub.toLowerCase().includes(q) ||
+    item.preview.toLowerCase().includes(q) ||
+    item.detail.toLowerCase().includes(q) ||
+    item.tags.toLowerCase().includes(q) ||
+    item.formula.toLowerCase().includes(q)
+  );
+
+  let html = `<div class="sec-header">
+    <div class="sec-tag">Busca</div>
+    <div class="sec-title">${results.length} resultado${results.length!==1?'s':''} para "${searchQuery}"</div>
+  </div>`;
+
+  if (results.length === 0) {
+    html += `<div class="search-results"><div class="no-results">Nenhum resultado encontrado. Tente: OEE, MAPE, S&OP, PDCA, XGBoost…</div></div>`;
+  } else {
+    html += `<div class="search-results">`;
+    results.forEach(r => {
+      const snip = highlight(r.preview, q);
+      html += `<div class="result-item" onclick="goToSection('${r.secId}')">
+        <div class="result-name">${highlight(r.name, q)}</div>
+        <div class="result-path">${r.secTitle} › ${r.groupLabel}</div>
+        <div class="result-snippet">${snip}</div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+  main.innerHTML = html;
+}
+
+function highlight(text, q) {
+  if (!q) return text;
+  const re = new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi');
+  return text.replace(re, '<mark>$1</mark>');
+}
+
+// ─── ACTIONS ─────────────────────────────────────────────────────────────────
+function showSection(secId) {
+  currentSection = secId;
+  searchQuery = '';
+  document.getElementById('search-input').value = '';
+  expandedCards.clear();
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('nav-' + secId).classList.add('active');
+  closeSidebar();
+  render();
+  window.scrollTo(0, 0);
+}
+
+function goToSection(secId) {
+  showSection(secId);
+}
+
+function toggleCard(cardId) {
+  if (expandedCards.has(cardId)) expandedCards.delete(cardId);
+  else expandedCards.add(cardId);
+  const card = document.getElementById('card-' + cardId);
+  const expand = card.querySelector('.card-expand');
+  const isOpen = expandedCards.has(cardId);
+  card.classList.toggle('expanded', isOpen);
+  expand.classList.toggle('open', isOpen);
+}
+
+function doSearch(val) {
+  searchQuery = val.trim();
+  expandedCards.clear();
+  render();
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('open');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').classList.remove('open');
+}
+
+// ─── ICONS ───────────────────────────────────────────────────────────────────
+function getIcon(name) {
+  const n = name.toLowerCase();
+  if (n.includes('oee') || n.includes('efici')) return '⚙';
+  if (n.includes('forecast') || n.includes('previsão') || n.includes('mape') || n.includes('mad') || n.includes('bias') || n.includes('fill') || n.includes('acurácia')) return '📈';
+  if (n.includes('pdca') || n.includes('plan') || n.includes('planejar')) return '🔄';
+  if (n.includes('do') || n.includes('executar')) return '▶';
+  if (n.includes('check') || n.includes('verif')) return '✓';
+  if (n.includes('act') || n.includes('agir') || n.includes('padron')) return '★';
+  if (n.includes('ishikawa') || n.includes('causa')) return '🐟';
+  if (n.includes('pareto')) return '📊';
+  if (n.includes('5w2h') || n.includes('plano de ação')) return '📋';
+  if (n.includes('porquê') || n.includes('5 por')) return '❓';
+  if (n.includes('otif')) return '🚚';
+  if (n.includes('lead time')) return '⏱';
+  if (n.includes('produtiv')) return '👷';
+  if (n.includes('estoque') || n.includes('giro') || n.includes('cobertura') || n.includes('inventário')) return '📦';
+  if (n.includes('rejeição') || n.includes('scrap') || n.includes('fty') || n.includes('qualidade')) return '🔍';
+  if (n.includes('custo') || n.includes('margem') || n.includes('ebitda') || n.includes('giro de ativo')) return '💰';
+  if (n.includes('s&op')) return '🤝';
+  if (n.includes('cpfr')) return '🔗';
+  if (n.includes('demand sensing') || n.includes('sensing')) return '📡';
+  if (n.includes('comparativo') || n.includes('vs.')) return '⚖';
+  if (n.includes('mrp') || n.includes('planejamento')) return '🗂';
+  if (n.includes('sequenciamento')) return '🔢';
+  if (n.includes('programação detalhada') || n.includes('gantt')) return '📅';
+  if (n.includes('coleta') || n.includes('apontamento')) return '📝';
+  if (n.includes('monitoramento') || n.includes('tempo real')) return '🖥';
+  if (n.includes('registro') || n.includes('ocorrência')) return '🗒';
+  if (n.includes('desvio') || n.includes('análise de des')) return '📉';
+  if (n.includes('corretiv') || n.includes('replanejamento')) return '🔧';
+  if (n.includes('relatório') || n.includes('kpi')) return '📋';
+  if (n.includes('supervisionado')) return '🎯';
+  if (n.includes('não supervis')) return '🔮';
+  if (n.includes('reforço')) return '🏆';
+  if (n.includes('deep') || n.includes('lstm') || n.includes('neural')) return '🧠';
+  if (n.includes('xgboost') || n.includes('lightgbm') || n.includes('gradient')) return '🚀';
+  if (n.includes('prophet')) return '🔭';
+  if (n.includes('random forest')) return '🌲';
+  if (n.includes('transformer') || n.includes('tft')) return '⚡';
+  if (n.includes('demand forecasting')) return '📈';
+  if (n.includes('manutenção preditiva')) return '🔩';
+  if (n.includes('visão computacional')) return '👁';
+  if (n.includes('otimização de estoque')) return '📦';
+  if (n.includes('coleta e integração')) return '🗄';
+  if (n.includes('feature')) return '🔬';
+  if (n.includes('validação') || n.includes('walk-forward')) return '✅';
+  if (n.includes('deploy') || n.includes('mlops')) return '🖧';
+  if (n.includes('média móvel')) return '〰';
+  if (n.includes('suavização') || n.includes('exponencial')) return '📈';
+  if (n.includes('regressão')) return '📐';
+  if (n.includes('arima') || n.includes('sarima')) return '〜';
+  if (n.includes('delphi')) return '💬';
+  if (n.includes('pesquisa')) return '🔎';
+  return '◆';
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>
