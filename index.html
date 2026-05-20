@@ -130,6 +130,51 @@ mark { background: rgba(79,158,255,0.25); color: var(--accent); border-radius: 2
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+/* ── TABELA PERIÓDICA DE LOGÍSTICA ── */
+.periodic-wrap { width: 100%; overflow-x: auto; padding-bottom: 8px; }
+.periodic-table { display: grid; grid-template-columns: repeat(8, minmax(80px, 1fr)); gap: 8px; min-width: 680px; }
+.pt-cell { border-radius: 10px; padding: 10px 8px 8px; cursor: pointer; position: relative; transition: transform .15s, box-shadow .15s; user-select: none; border: 2px solid transparent; }
+.pt-cell:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,.4); }
+.pt-cell:active { transform: scale(.97); }
+.pt-cell.selected { border-color: rgba(255,255,255,.5); box-shadow: 0 0 0 3px rgba(255,255,255,.15); }
+.pt-num { font-family: var(--mono); font-size: 10px; font-weight: 500; opacity: .7; margin-bottom: 4px; }
+.pt-sig { font-size: 22px; font-weight: 700; line-height: 1; margin-bottom: 4px; letter-spacing: -.02em; }
+.pt-name { font-size: 9px; font-weight: 600; line-height: 1.2; margin-bottom: 3px; opacity: .95; }
+.pt-desc { font-size: 8px; opacity: .7; line-height: 1.3; }
+.pt-empty { background: transparent !important; cursor: default; }
+.pt-empty:hover { transform: none; box-shadow: none; }
+/* cores por grupo */
+.pt-g1 { background: #6c3fc5; color: #fff; }
+.pt-g2 { background: #2563a8; color: #fff; }
+.pt-g3 { background: #1a7a4a; color: #fff; }
+.pt-g4 { background: #c45c1a; color: #fff; }
+.pt-g5 { background: #b02080; color: #fff; }
+.pt-g6 { background: #b5891a; color: #fff; }
+.pt-g7 { background: #1a8a8a; color: #fff; }
+/* legend */
+.pt-legend { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.pt-leg-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); }
+.pt-leg-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+/* detail modal */
+.pt-detail { background: var(--bg2); border: 1px solid var(--border2); border-radius: 14px; padding: 20px; margin-top: 20px; animation: fadeIn .2s ease; }
+.pt-detail-top { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 14px; }
+.pt-detail-badge { width: 56px; height: 56px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 700; color: #fff; flex-shrink: 0; }
+.pt-detail-meta { flex: 1; }
+.pt-detail-num { font-family: var(--mono); font-size: 11px; color: var(--muted); margin-bottom: 2px; }
+.pt-detail-name { font-size: 17px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+.pt-detail-group { font-size: 12px; color: var(--muted); }
+.pt-detail-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.pt-detail-list li { font-size: 13px; color: var(--muted); display: flex; gap: 8px; line-height: 1.5; }
+.pt-detail-list li::before { content: "›"; color: var(--accent); font-weight: 600; flex-shrink: 0; }
+.pt-hint { font-size: 12px; color: var(--muted); text-align: center; margin-bottom: 14px; opacity: .6; }
+@media (max-width: 700px) {
+  .pt-sig { font-size: 18px; }
+  .pt-name { font-size: 8px; }
+  .pt-desc { display: none; }
+  .periodic-table { gap: 5px; min-width: 560px; }
+  .pt-cell { padding: 8px 5px 6px; }
+}
 </style>
 </head>
 <body>
@@ -143,7 +188,7 @@ mark { background: rgba(79,158,255,0.25); color: var(--accent); border-radius: 2
     <span class="search-icon">🔍</span>
     <input type="text" id="search-input" placeholder="Buscar: OEE, MAPE, S&OP, PDCA…" oninput="doSearch(this.value)">
   </div>
-  <div class="badge-count" id="badge-count">6 módulos · 80+ conceitos</div>
+  <div class="badge-count" id="badge-count">7 módulos · 100+ conceitos</div>
 </header>
 
 <div class="layout">
@@ -167,6 +212,9 @@ mark { background: rgba(79,158,255,0.25); color: var(--accent); border-radius: 2
       </button>
       <button class="nav-btn" onclick="showSection('ml')" id="nav-ml">
         <span class="nav-dot" style="background:#7c6fff"></span> Machine Learning
+      </button>
+      <button class="nav-btn" onclick="showSection('logistica')" id="nav-logistica">
+        <span class="nav-dot" style="background:#00b4a0"></span> Logística
       </button>
     </div>
   </nav>
@@ -438,6 +486,131 @@ Object.entries(sections).forEach(([secId, sec]) => {
   });
 });
 
+
+// ─── LOGÍSTICA DATA ──────────────────────────────────────────────────────────
+const logElements = [
+  // grid 8 colunas, 3 linhas + header row
+  // row 0: headers (rendered separately)
+  // row 1
+  { num:1,  sig:'LT',   name:'Lead Time Padrão',           group:1, col:1, row:1, desc:'Tempo padrão de processo', detail:['Tempo total padrão para execução de um processo logístico, do início ao fim','Base para calcular prazos de entrega prometidos ao cliente','Composto por: tempo de processamento + tempo de fila + tempo de transporte','Lead time reduzido = maior competitividade e menor necessidade de estoques','Monitorado como KPI — desvio do lead time padrão aciona ação corretiva'] },
+  { num:2,  sig:'SC',   name:'Supply Chain Padroni.',       group:2, col:2, row:1, desc:'Cadeia de suprimentos integrada', detail:['Gestão padronizada de toda a cadeia: fornecedor → produção → distribuição → cliente','Padronização elimina variabilidade e reduz custos ao longo dos elos','Inclui processos de compras, produção, armazenagem, transporte e atendimento','Supply Chain resiliente: capaz de absorver rupturas sem impactar o cliente final','KPI principal: OTIF (On Time In Full) ao longo de toda a cadeia'] },
+  { num:3,  sig:'CD',   name:'Centro de Distribuição',      group:3, col:3, row:1, desc:'Local de recebimento e expedição', detail:['Instalação física onde produtos são recebidos, armazenados e expedidos para o destino final','Funções: recebimento, conferência, armazenagem, picking, packing e expedição','CD padrão: processos documentados e indicadores definidos para cada operação','Localização estratégica do CD reduz custo e tempo de entrega para o mercado atendido','KPIs: acurácia de inventário, produtividade de picking, tempo de ciclo de pedido'] },
+  { num:4,  sig:'SKU',  name:'Unidade de Estoque',          group:3, col:4, row:1, desc:'Código padronizado de produto', detail:['Stock Keeping Unit: código único que identifica cada variante de produto (cor, tamanho, embalagem)','Base de toda gestão de estoque — sem SKU padronizado não há controle confiável','Proliferação de SKUs aumenta complexidade e custo — gerenciar portfólio ativamente','Classificação ABC por SKU: itens A exigem controle mais rigoroso de estoque','Eliminação de SKUs de baixo giro reduz complexidade operacional e capital imobilizado'] },
+  { num:5,  sig:'FIFO', name:'Primeiro que Entra, Sai',     group:3, col:5, row:1, desc:'Rotatividade padrão', detail:['First In First Out: o primeiro produto a entrar no estoque é o primeiro a sair','Método padrão para produtos com validade (alimentos, medicamentos, cosméticos)','Previne obsolescência e vencimento de produtos no estoque','Implementação: endereçamento por lote e data de entrada no WMS','Contrário ao LIFO — FIFO é mandatório em setores regulados por validade'] },
+  { num:6,  sig:'LIFO', name:'Último que Entra, Sai',       group:3, col:6, row:1, desc:'Método permitido (onde aplicável)', detail:['Last In First Out: o último produto a entrar é o primeiro a sair','Usado em armazenagem de produtos sem validade onde o acesso é pela frente (ex.: pilhas)','Não recomendado para produtos perecíveis — risco de obsolescência dos itens mais antigos','No Brasil, LIFO não é aceito pela legislação fiscal como método de custeio de estoque','Situação física onde LIFO ocorre naturalmente: racks sem corredores traseiros'] },
+  { num:7,  sig:'TMS',  name:'Sistema de Gestão Transporte', group:4, col:7, row:1, desc:'Planejamento e execução', detail:['Transportation Management System: sistema que planeja, executa e monitora todas as operações de transporte','Funcionalidades: cotação de frete, roteirização, agendamento, rastreamento e auditoria de faturas','Integrado ao ERP e WMS — forma o backbone da operação logística','Roteirização inteligente reduz custo de frete e melhora OTIF simultaneamente','KPIs monitorados: custo por km, custo por entrega, OTIF, avarias em trânsito'] },
+  { num:8,  sig:'JIT',  name:'Just In Time',                group:1, col:8, row:1, desc:'Fornecimento no momento certo', detail:['Filosofia lean de receber/produzir exatamente o que é necessário, na quantidade certa, no momento certo','Reduz drasticamente estoques intermediários e capital de giro imobilizado','Exige fornecedores confiáveis com lead time curto e alta qualidade — parceria estratégica','Vulnerável a rupturas na cadeia — requer supply chain resiliente e plano de contingência','Base do Sistema Toyota de Produção — amplamente adotado na indústria automotiva e eletrônica'] },
+  // row 2
+  { num:18, sig:'FRT',  name:'Frete Padronizado',           group:4, col:2, row:2, desc:'Modal e transportadora conforme acordo', detail:['Política de frete padronizada: define modal (rodoviário, aéreo, marítimo), transportadora e condições por rota','Tabela de frete: preços negociados por faixa de peso, distância e tipo de carga','CIF vs FOB: CIF o fornecedor paga o frete; FOB o comprador assume a responsabilidade a partir da origem','Auditoria de frete: conferir se o cobrado bate com o acordado — erros são frequentes e custosos','KPI: custo de frete como % da receita — benchmark por setor e modal'] },
+  { num:19, sig:'DOC',  name:'Documentação Padronizada',    group:4, col:3, row:2, desc:'Documentos conformes ao padrão', detail:['Conjunto de documentos padronizados que acompanham cada operação logística','Documentos essenciais: NF-e, CT-e, MDF-e, DANFE, packing list, certificado de origem','Documentação incorreta causa bloqueios fiscais, multas e atraso na entrega','Padronização garante conformidade fiscal e agilidade no recebimento pelo cliente','EDI automatiza a transmissão de documentos entre parceiros comerciais'] },
+  { num:10, sig:'WMS',  name:'Sist. Gerenc. Armazém',       group:3, col:4, row:2, desc:'Sistema padrão de gestão de estoque', detail:['Warehouse Management System: sistema que gerencia todas as operações dentro do armazém','Funcionalidades: recebimento, endereçamento, picking, packing, expedição e inventário','Integrado ao ERP — atualiza saldos de estoque em tempo real','WMS aumenta acurácia de inventário para > 99% e produtividade de picking em 20–40%','Tecnologias complementares: código de barras, RFID, voice picking, put-to-light'] },
+  { num:11, sig:'PICK', name:'Picking Padrão',              group:3, col:5, row:2, desc:'Separação de pedidos padronizada', detail:['Processo de separação dos itens do pedido dentro do armazém — operação mais cara do CD','Métodos: picking por pedido, por lote, por zona, por onda — escolha depende do volume e mix','Pick by light / voice picking: tecnologias que aumentam velocidade e reduzem erros','Produtividade de picking: linhas separadas por hora-homem — KPI principal da operação de CD','Erro de picking gera retrabalho, devolução e insatisfação do cliente — acurácia é crítica'] },
+  { num:12, sig:'PACK', name:'Embalagem Padrão',            group:3, col:6, row:2, desc:'Embalagem conforme especificação', detail:['Processo de embalar os itens separados conforme especificação do pedido e do cliente','Embalagem adequada protege o produto em trânsito e garante conformidade com o pedido','Padrão de embalagem: caixa, volume, etiqueta e documentos definidos por tipo de pedido e canal','Custo de embalagem é parte significativa do custo logístico — otimizar volume e peso','Embalagem sustentável: tendência crescente — reduzir material e usar materiais recicláveis'] },
+  { num:13, sig:'LOC',  name:'Endereçamento Padrão',        group:3, col:7, row:2, desc:'Localização padronizada de itens', detail:['Sistema de endereçamento que define a localização exata de cada SKU no armazém','Estrutura típica: Rua–Módulo–Nível–Posição (ex.: A-03-2-01)','Endereçamento fixo: cada SKU tem posição fixa — simples mas menos eficiente','Endereçamento dinâmico (caótico): posições livres gerenciadas pelo WMS — maior densidade','Slotting: posicionar os SKUs mais movimentados (ABC) nas posições mais ergonômicas e acessíveis'] },
+  { num:16, sig:'SLA',  name:'Acordo de Nível de Serviço',  group:1, col:8, row:2, desc:'Padrões acordados de serviço', detail:['Service Level Agreement: contrato que define os padrões mínimos de serviço entre fornecedor e cliente','Parâmetros típicos: prazo de entrega, acurácia de pedido, OTIF, tempo de resposta a reclamações','SLA descumprido pode gerar multas contratuais e perda do cliente','Revisão periódica do SLA — ajustar conforme evolução da operação e expectativas do cliente','Monitoramento contínuo com dashboards — antecipa riscos de descumprimento antes que ocorram'] },
+  // row 3
+  { num:9,  sig:'VMI',  name:'Vendor Managed Inventory',    group:2, col:2, row:3, desc:'Estoque gerenciado pelo fornecedor', detail:['O fornecedor assume a responsabilidade de gerenciar e repor o estoque no cliente','Fornecedor acessa dados de consumo e estoque do cliente em tempo real via EDI ou portal','Reduz rupturas, otimiza o nível de estoque e libera capital de giro do cliente','Requer alto nível de confiança e integração de dados entre as partes','Amplamente usado em varejo (ex.: P&G gerenciando estoque em grandes redes) e indústria automotiva'] },
+  { num:14, sig:'ERP',  name:'Sistema Integrado Padrão',    group:5, col:3, row:3, desc:'Dados integrados e confiáveis', detail:['Enterprise Resource Planning: sistema que integra todos os processos da empresa em uma única plataforma','Módulos logísticos: compras, estoque, vendas, faturamento, transporte e finanças','ERP é a fonte única da verdade — elimina planilhas paralelas e dados inconsistentes','Integração ERP ↔ WMS ↔ TMS forma o backbone tecnológico da operação logística','Principais ERPs no mercado: SAP, Oracle, TOTVS, Microsoft Dynamics'] },
+  { num:20, sig:'EDI',  name:'Intercâmbio Eletrônico',      group:5, col:4, row:3, desc:'Comunicação padronizada entre sistemas', detail:['Electronic Data Interchange: troca automática de documentos entre sistemas de parceiros comerciais','Documentos trocados via EDI: pedidos de compra, NF-e, aviso de embarque, confirmação de entrega','Elimina digitação manual — reduz erros, acelera processos e reduz custo operacional','Padrão EDIFACT ou XML — definido entre as partes na implementação','Base do CPFR e VMI — sem EDI a colaboração em tempo real não é viável em escala'] },
+  { num:15, sig:'MPS',  name:'Planejamento Mestre Produção', group:6, col:5, row:3, desc:'Plano padronizado de demanda', detail:['Master Production Schedule: plano que define o que produzir, em qual quantidade e em qual data','Traduz a demanda prevista (S&OP) em ordens de produção executáveis','Considera restrições de capacidade, materiais disponíveis e estoques de segurança','Horizonte típico: 4 a 12 semanas — revisado semanalmente no ciclo de planejamento','MPS alimenta o MRP — que por sua vez gera as necessidades de materiais e componentes'] },
+  { num:21, sig:'KPI',  name:'Indicadores Padronizados',    group:6, col:6, row:3, desc:'Métricas padronizadas para controle', detail:['Key Performance Indicators: métricas que medem o desempenho dos processos logísticos','KPIs de armazém: acurácia de inventário, produtividade de picking, tempo de ciclo de pedido','KPIs de transporte: OTIF, custo de frete/receita, avarias, devoluções','KPIs financeiros: custo logístico total/receita, giro de estoque, capital de giro em estoque','Revisão semanal de KPIs operacionais e mensal de KPIs estratégicos no S&OP'] },
+  { num:22, sig:'OTIF', name:'Entrega no Prazo e Completa', group:7, col:7, row:3, desc:'Entrega conforme prometido', detail:['On Time In Full: métrica que combina pontualidade (On Time) e completude (In Full) da entrega','OTIF = % entregas realizadas no prazo combinado E com a quantidade total solicitada','É o principal KPI de nível de serviço ao cliente na logística — meta típica > 95%','Queda de OTIF: investigar causa raiz — estoque, produção, transporte ou documentação','Calcular OTIF por cliente, canal e região — identificar onde estão as maiores oportunidades'] },
+  { num:23, sig:'CP',   name:'Conformidade com Padrões',    group:7, col:8, row:3, desc:'Atendimento aos padrões e procedimentos', detail:['Grau de aderência dos processos logísticos aos padrões e procedimentos definidos','Conformidade garante previsibilidade, qualidade e rastreabilidade das operações','Auditoria periódica de processos — verificar se o executado corresponde ao padronizado','Não conformidades geram ação corretiva imediata e revisão do procedimento se necessário','Base para certificações: ISO 9001, ISO 14001, OHSAS — conformidade é pré-requisito'] },
+];
+
+const groupColors = {
+  1: '#6c3fc5', 2: '#2563a8', 3: '#1a7a4a',
+  4: '#c45c1a', 5: '#b02080', 6: '#b5891a', 7: '#1a8a8a'
+};
+const groupNames = {
+  1: 'Tempo', 2: 'Suprimentos', 3: 'Armazenagem e Estoque',
+  4: 'Transporte e Distribuição', 5: 'Sistemas e Tecnologia',
+  6: 'Planejamento e Controle', 7: 'Desempenho e Padrão'
+};
+
+let selectedElement = null;
+
+function renderLogistica(main) {
+  // Add to search index
+  logElements.forEach(e => {
+    searchIndex.push({
+      secId: 'logistica', secTitle: 'Logística', groupLabel: groupNames[e.group],
+      name: e.sig + ' — ' + e.name, sub: e.desc, preview: e.detail[0],
+      detail: e.detail.join(' '), tags: '', formula: ''
+    });
+  });
+
+  const legend = Object.entries(groupNames).map(([g, name]) =>
+    `<div class="pt-leg-item"><div class="pt-leg-dot" style="background:${groupColors[g]}"></div><span>G${g} ${name}</span></div>`
+  ).join('');
+
+  // Build 8-col grid: col1=G1/special, cols2-8=content
+  // Layout: 3 rows x 8 cols
+  const grid = Array.from({length:3}, () => Array(8).fill(null));
+  logElements.forEach(e => { grid[e.row-1][e.col-1] = e; });
+
+  let cells = '';
+  for (let r=0; r<3; r++) {
+    for (let c=0; c<8; c++) {
+      const e = grid[r][c];
+      if (!e) { cells += `<div class="pt-cell pt-empty"></div>`; continue; }
+      cells += `<div class="pt-cell pt-g${e.group}" id="ptcell-${e.num}" onclick="selectElement(${e.num})">
+        <div class="pt-num">${e.num}</div>
+        <div class="pt-sig">${e.sig}</div>
+        <div class="pt-name">${e.name}</div>
+        <div class="pt-desc">${e.desc}</div>
+      </div>`;
+    }
+  }
+
+  main.innerHTML = `
+    <div class="sec-header">
+      <div class="sec-tag">Logística · 7 Grupos · 23 Elementos</div>
+      <div class="sec-title">Tabela Periódica da Logística</div>
+      <div class="sec-desc">Os 23 elementos essenciais para uma logística padronizada e eficiente. Toque em qualquer elemento para ver a explicação completa.</div>
+    </div>
+    <div class="pt-legend">${legend}</div>
+    <div class="pt-hint">▼ Toque em um elemento para ver os detalhes</div>
+    <div class="periodic-wrap">
+      <div class="periodic-table">${cells}</div>
+    </div>
+    <div id="pt-detail-box"></div>
+  `;
+}
+
+function selectElement(num) {
+  const e = logElements.find(x => x.num === num);
+  if (!e) return;
+
+  // toggle
+  if (selectedElement === num) {
+    selectedElement = null;
+    document.querySelectorAll('.pt-cell').forEach(c => c.classList.remove('selected'));
+    document.getElementById('pt-detail-box').innerHTML = '';
+    return;
+  }
+  selectedElement = num;
+  document.querySelectorAll('.pt-cell').forEach(c => c.classList.remove('selected'));
+  const cell = document.getElementById('ptcell-' + num);
+  if (cell) { cell.classList.add('selected'); cell.scrollIntoView({behavior:'smooth', block:'nearest'}); }
+
+  const color = groupColors[e.group];
+  const items = e.detail.map(d => `<li>${d}</li>`).join('');
+  document.getElementById('pt-detail-box').innerHTML = `
+    <div class="pt-detail">
+      <div class="pt-detail-top">
+        <div class="pt-detail-badge" style="background:${color}">${e.sig}</div>
+        <div class="pt-detail-meta">
+          <div class="pt-detail-num">Elemento ${e.num}</div>
+          <div class="pt-detail-name">${e.name}</div>
+          <div class="pt-detail-group">Grupo ${e.group} — ${groupNames[e.group]}</div>
+        </div>
+      </div>
+      <ul class="pt-detail-list">${items}</ul>
+    </div>
+  `;
+}
+
 // ─── STATE ───────────────────────────────────────────────────────────────────
 let currentSection = 'ppcp';
 let expandedCards = new Set();
@@ -454,6 +627,7 @@ function render() {
 }
 
 function renderSection(main, secId) {
+  if (secId === 'logistica') { renderLogistica(main); return; }
   const sec = sections[secId];
   let html = `
     <div class="sec-header">
@@ -547,7 +721,8 @@ function showSection(secId) {
   document.getElementById('search-input').value = '';
   expandedCards.clear();
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('nav-' + secId).classList.add('active');
+  const navEl = document.getElementById('nav-' + secId);
+  if (navEl) navEl.classList.add('active');
   closeSidebar();
   render();
   window.scrollTo(0, 0);
