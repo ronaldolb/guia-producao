@@ -111,18 +111,15 @@ mark{background:rgba(79,158,255,.22);color:#4f9eff;border-radius:2px;padding:0 2
 /* MOBILE */
 @media(max-width:680px){
   .view{padding:16px 12px 60px}
-  .pt-home{grid-template-columns:repeat(4,1fr);gap:6px}
-  .ptc{min-height:90px;padding:10px 7px 7px;border-radius:9px}
-  .pt-sig{font-size:20px}
-  .pt-name{font-size:8px}
-  .pt-desc{display:none}
+  .pt-home{grid-template-columns:repeat(3,1fr);gap:8px}
+  .ptc{min-height:100px;padding:10px 8px 8px;border-radius:10px}
+  .pt-sig{font-size:22px}
+  .pt-name{font-size:9px}
+  .pt-desc{font-size:8px;opacity:.6}
   .nav-tabs{gap:3px}
   .nav-tab{font-size:11px;padding:4px 8px}
   .cg{grid-template-columns:1fr}
-}
-@media(max-width:420px){
-  .pt-home{grid-template-columns:repeat(3,1fr)}
-  .pt-sig{font-size:17px}
+  .ptc-empty{display:none}
 }
 ::-webkit-scrollbar{width:4px}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
@@ -248,6 +245,9 @@ const PTROWS=[
   ['sla_log','frt_log','doc_log','wms','pick_log','pack_log','loc_log','vmi'],
   [null,'erp_log','edi','mps_log','kpi_log','otif_log','cp_log',null],
 ];
+// Lista plana (sem nulls) para mobile
+const PT_FLAT=['lt','sc_log','cd_log','sku_log','fifo_log','lifo_log','tms','jit','sla_log','frt_log','doc_log','wms','pick_log','pack_log','loc_log','vmi','erp_log','edi','mps_log','kpi_log','otif_log','cp_log','cp_log'].filter((v,i,a)=>a.indexOf(v)===i);
+const PT_FLAT_ORDERED=['lt','sc_log','cd_log','sku_log','fifo_log','lifo_log','tms','jit','sla_log','vmi','wms','pick_log','pack_log','loc_log','erp_log','edi','mps_log','kpi_log','otif_log','cp_log','frt_log','doc_log'];
 const PT_NUMS={lt:1,sc_log:2,cd_log:3,sku_log:4,fifo_log:5,lifo_log:6,tms:7,jit:8,sla_log:16,frt_log:18,doc_log:19,wms:10,pick_log:11,pack_log:12,loc_log:13,vmi:9,erp_log:14,edi:20,mps_log:15,kpi_log:21,otif_log:22,cp_log:23};
 
 const IDX=Object.values(DB).map(c=>({id:c.id,sec:c.sec,grp:c.grp,name:c.name,sub:c.sub,preview:c.preview,
@@ -261,18 +261,33 @@ function renderHome(){
   show('view-home');
   const v=document.getElementById('view-home');
   const legend=Object.entries(GRP_COLORS).map(([g,c])=>`<div class="hleg"><div class="hleg-dot" style="background:${c}"></div><span>${g}</span></div>`).join('');
+  const isMobile = window.innerWidth < 600;
   let cells='';
-  PTROWS.forEach(row=>row.forEach(id=>{
-    if(!id){cells+=`<div class="ptc ptc-empty"></div>`;return;}
-    const c=DB[id];if(!c){cells+=`<div class="ptc ptc-empty"></div>`;return;}
-    const num=PT_NUMS[id]||'';
-    cells+=`<div class="ptc" id="ptc-${id}" style="background:${c.color}" onclick="selPt('${id}')">
-      <div class="pt-num">${num}</div>
-      <div class="pt-sig">${c.sig||id.toUpperCase()}</div>
-      <div class="pt-name">${c.name}</div>
-      <div class="pt-desc">${c.sub}</div>
-    </div>`;
-  }));
+  if(isMobile){
+    // Mobile: layout linear sem buracos
+    PT_FLAT_ORDERED.forEach(id=>{
+      const c=DB[id];if(!c)return;
+      const num=PT_NUMS[id]||'';
+      cells+=`<div class="ptc" id="ptc-${id}" style="background:${c.color}" onclick="selPt('${id}')">
+        <div class="pt-num">${num}</div>
+        <div class="pt-sig">${c.sig||id.toUpperCase()}</div>
+        <div class="pt-name">${c.name}</div>
+        <div class="pt-desc">${c.sub}</div>
+      </div>`;
+    });
+  } else {
+    PTROWS.forEach(row=>row.forEach(id=>{
+      if(!id){cells+=`<div class="ptc ptc-empty"></div>`;return;}
+      const c=DB[id];if(!c){cells+=`<div class="ptc ptc-empty"></div>`;return;}
+      const num=PT_NUMS[id]||'';
+      cells+=`<div class="ptc" id="ptc-${id}" style="background:${c.color}" onclick="selPt('${id}')">
+        <div class="pt-num">${num}</div>
+        <div class="pt-sig">${c.sig||id.toUpperCase()}</div>
+        <div class="pt-name">${c.name}</div>
+        <div class="pt-desc">${c.sub}</div>
+      </div>`;
+    }));
+  }
   v.innerHTML=`
     <div class="home-title">Tabela Periódica da Logística</div>
     <div class="home-main-title">PROD·GUIDE</div>
